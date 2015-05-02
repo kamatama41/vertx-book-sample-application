@@ -10,7 +10,7 @@ public class MindMap {
     @JsonCreator
     public MindMap(
             @JsonProperty(value = "_id", required = false) Integer id,
-            @JsonProperty("name") String name) {
+            @JsonProperty(value = "name", required = false) String name) {
         this.id = id;
         this.name = name;
     }
