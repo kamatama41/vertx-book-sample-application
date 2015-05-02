@@ -1,1 +1,1 @@
-This repository is Vert.x training of mine.
+This repository is Vert.x training for me.
