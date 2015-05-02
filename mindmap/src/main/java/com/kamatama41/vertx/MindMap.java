@@ -2,6 +2,7 @@ package com.kamatama41.vertx;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.vertx.java.core.json.impl.Json;
 
 public class MindMap {
     private Integer id;
@@ -24,4 +25,8 @@ public class MindMap {
         return name;
     }
 
+    @Override
+    public String toString() {
+        return Json.encode(this);
+    }
 }

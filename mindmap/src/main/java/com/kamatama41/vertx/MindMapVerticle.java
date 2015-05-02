@@ -12,8 +12,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class MindMapVerticle extends Verticle {
 
-    private Map<Integer, MindMap> mindMaps = new HashMap<>();
-    private AtomicInteger counter = new AtomicInteger(0);
+    private static final Map<Integer, MindMap> mindMaps = new HashMap<>();
+    private static final AtomicInteger counter = new AtomicInteger(0);
 
     @Override
     public void start() {
