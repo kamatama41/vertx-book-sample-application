@@ -20,6 +20,12 @@ public class App extends Verticle {
                                         .addObject(new JsonObject().putString("address", "mindMaps.delete"))
                         )
         );
+        container.deployModule(
+                "io.vertx~mod-mongo-persistor~2.0.0-final"
+                , new JsonObject()
+                        .putString("address", "mindMaps.persistor")
+                        .putString("db_name", "mind_maps")
+        );
         container.deployVerticle(MindMapVerticle.class.getCanonicalName());
     }
 
