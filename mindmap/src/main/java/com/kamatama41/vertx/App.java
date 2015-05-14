@@ -1,9 +1,12 @@
 package com.kamatama41.vertx;
 
+import org.vertx.java.core.eventbus.Message;
 import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.platform.Verticle;
 import org.vertx.java.platform.impl.cli.Starter;
+
+import java.util.concurrent.TimeUnit;
 
 public class App extends Verticle {
     @Override
@@ -26,7 +29,19 @@ public class App extends Verticle {
                         .putString("address", "mindMaps.persistor")
                         .putString("db_name", "mind_maps")
         );
-        container.deployVerticle(MindMapVerticle.class.getCanonicalName());
+        container.deployVerticle(
+                MindMapVerticle.class.getCanonicalName()
+        );
+
+        // ここから先は不要
+        try {
+            TimeUnit.SECONDS.sleep(2);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        container.deployVerticle(
+                App.class.getCanonicalName() + "$" + ClientApp.class.getSimpleName()
+        );
     }
 
     public static void main(String[] args) {
@@ -37,5 +52,24 @@ public class App extends Verticle {
         Starter.main(new String[]{
                 "run", App.class.getCanonicalName()
         });
+    }
+
+    public static class ClientApp extends Verticle {
+        @Override
+        public void start() {
+            vertx.eventBus().send("mindMaps.list", new JsonObject(),(Message<JsonObject> message) -> {
+                System.out.println(message.body().toString());
+
+                MindMap mindMap = new MindMap(null, "test1");
+                vertx.eventBus().send("mindMaps.save", mindMap.toJson(),(Message<JsonObject> saveMessage) -> {
+                    System.out.println(saveMessage.body().toString());
+
+                    vertx.eventBus().send("mindMaps.delete", MindMap.fromJson(saveMessage.body()).toJson(),(Message<JsonObject> deleteMessage) -> {
+                        System.out.println(deleteMessage.body().toString());
+                    });
+                });
+
+            });
+        }
     }
 }
