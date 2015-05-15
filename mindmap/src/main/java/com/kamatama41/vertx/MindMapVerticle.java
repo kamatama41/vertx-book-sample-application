@@ -11,30 +11,20 @@ public class MindMapVerticle extends Verticle {
     public void start() {
         // Find all MindMap
         vertx.eventBus().registerHandler("mindMaps.list", event -> {
-            executeMongoAction("find"
+            sendPersisterEvent("find"
                     , new JsonObject().putObject("matcher", new JsonObject())
-                    , (Message<JsonObject> message) -> {
-                        final JsonObject response = message.body();
-                        if(response.getString("status").equals("ok")) {
-                            event.reply(new JsonObject().putArray("mindMaps", response.getArray("results")));
-                        } else {
-                            container.logger().warn(response.getString("message"));
-                        }
+                    , response -> {
+                        event.reply(new JsonObject().putArray("mindMaps", response.getArray("results")));
                     }
             );
         });
 
         // Find specific MindMap
         vertx.eventBus().registerHandler("mindMaps.find", (Message<JsonObject> event) -> {
-            executeMongoAction("find"
+            sendPersisterEvent("find"
                     , new JsonObject().putObject("matcher", new JsonObject().putString("_id", event.body().getString("_id")))
-                    , (Message<JsonObject> message) -> {
-                        final JsonObject response = message.body();
-                        if(response.getString("status").equals("ok")) {
-                            event.reply(new JsonObject().putArray("mindMaps", response.getArray("results")));
-                        } else {
-                            container.logger().warn(response.getString("message"));
-                        }
+                    , response -> {
+                        event.reply(new JsonObject().putArray("mindMaps", response.getArray("results")));
                     }
             );
         });
@@ -42,42 +32,39 @@ public class MindMapVerticle extends Verticle {
         // Save MindMap
         vertx.eventBus().registerHandler("mindMaps.save", (Message<JsonObject> event) -> {
             final JsonObject mindMap = event.body();
-            executeMongoAction("save"
+            sendPersisterEvent("save"
                     , new JsonObject().putObject("document", mindMap)
-                    , (Message<JsonObject> message) -> {
-                        final JsonObject response = message.body();
-                        if (response.getString("status").equals("ok")) {
-                            mindMap.putString("_id", response.getString("_id"));
-                            event.reply(mindMap);
-                        } else {
-                            container.logger().warn(response.getString("message"));
-                        }
+                    , response -> {
+                        mindMap.putString("_id", response.getString("_id"));
+                        event.reply(mindMap);
                     }
             );
         });
 
         // Delete specific MindMap
         vertx.eventBus().registerHandler("mindMaps.delete", (Message<JsonObject> event) -> {
-            executeMongoAction("delete"
+            sendPersisterEvent("delete"
                     , new JsonObject().putObject("matcher", new JsonObject().putString("_id", event.body().getString("_id")))
-                    , (Message<JsonObject> message) -> {
-                        final JsonObject response = message.body();
-                        if (response.getString("status").equals("ok")) {
-                            event.reply(new JsonObject());
-                        } else {
-                            container.logger().warn(response.getString("message"));
-                        }
+                    , response -> {
+                        event.reply(new JsonObject());
                     }
             );
         });
     }
 
-    private <T> void executeMongoAction(String action, JsonObject config, Handler<Message<T>> callback) {
+    private void sendPersisterEvent(String action, JsonObject command, Handler<JsonObject> callback) {
         vertx.eventBus().send("mindMaps.persistor"
-                , new JsonObject(config.toMap())
+                , new JsonObject(command.toMap())
                     .putString("action", action)
                     .putString("collection", "mindMaps")
-                , callback
+                , (Message<JsonObject> message) -> {
+                    final JsonObject response = message.body();
+                    if (response.getString("status").equals("ok")) {
+                        callback.handle(response);
+                    } else {
+                        container.logger().warn(response.getString("message"));
+                    }
+                }
         );
     }
 }
