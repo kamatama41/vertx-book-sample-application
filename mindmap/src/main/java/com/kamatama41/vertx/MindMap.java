@@ -1,35 +1,38 @@
 package com.kamatama41.vertx;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.vertx.java.core.json.JsonArray;
 import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.core.json.impl.Json;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MindMap {
-    private static ObjectMapper mapper = new ObjectMapper();
 
-    private String id;
-    private String name;
+    private JsonObject source;
 
-    @JsonCreator
-    public MindMap(
-            @JsonProperty(value = "_id", required = false) String id,
-            @JsonProperty(value = "name", required = false) String name) {
-        this.id = id;
-        this.name = name;
+    public MindMap(JsonObject source) {
+        this.source = source;
     }
 
-    @JsonProperty("_id")
+    public MindMap() {
+        this(new JsonObject().putArray("children", new JsonArray()));
+    }
+
     public String getId() {
-        return id;
+        return source.getString("_id");
+    }
+
+    public void setId(String id) {
+        source.putString("_id", id);
     }
 
     public String getName() {
-        return name;
+        return source.getString("name");
+    }
+
+    public void setName(String name) {
+        source.putString("name", name);
     }
 
     @Override
@@ -37,20 +40,31 @@ public class MindMap {
         return Json.encode(this);
     }
 
+    public static class Node {
+        private JsonObject source;
 
-    public JsonObject toJson() {
-        try {
-            return new JsonObject(mapper.writeValueAsString(this));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+        private Node(JsonObject source) {
+            this.source = source;
+        }
+
+        private Node() {
+            this(new JsonObject().putArray("children", new JsonArray()));
+        }
+
+        public String getKey() {
+            return source.getString("key");
+        }
+
+        public List<Node> getChildren() {
+            List<Node> result = new ArrayList<>();
+            for (Object child : source.getArray("children")) {
+                if(!(child instanceof JsonObject)) {
+                    throw new IllegalStateException("Node.child isn't unexpected tyoe = " + child.getClass().getCanonicalName());
+                }
+                result.add(new Node((JsonObject)child));
+            }
+            return result;
         }
     }
 
-    public static MindMap fromJson(JsonObject json) {
-        try {
-            return mapper.readValue(json.toString(), MindMap.class);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }
