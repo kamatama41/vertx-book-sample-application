@@ -3,13 +3,17 @@ var eb = new vertx.EventBus(
 eb.onopen = function () {
     var renderListItem = function (mindMap) {
         var li = $('<li>');
+        var openMindMap = function() {
+            new MindMapEditor(mindMap, eb);
+            return false;
+        };
         var deleteMindMap = function () {
             eb.send('mindMaps.delete', {_id: mindMap._id}, function () {
                 li.remove();
             });
         };
+        $('<a>').text(mindMap.name).attr('href', '#').on('click', openMindMap).appendTo(li);
         $('<button>').text('Delete').on('click', deleteMindMap).appendTo(li);
-        $('<span>').text(mindMap.name).appendTo(li);
         li.appendTo('.mind-maps');
     };
 

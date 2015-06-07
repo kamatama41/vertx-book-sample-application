@@ -6,9 +6,6 @@ import org.vertx.java.platform.Verticle;
 
 import java.util.List;
 
-/**
- * @author SHINICHI Ishimura
- */
 public class MindMapEditorVerticle extends Verticle {
 
     @Override
@@ -130,7 +127,7 @@ public class MindMapEditorVerticle extends Verticle {
     }
 
     private void publishMindMapEvent(MindMap mindMap, Object event) {
-        vertx.eventBus().publish("mindMaps.event." + mindMap.getId(), event);
+        vertx.eventBus().publish("mindMaps.events." + mindMap.getId(), event);
     }
 
 }

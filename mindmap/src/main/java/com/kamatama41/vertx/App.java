@@ -18,6 +18,10 @@ public class App extends Verticle {
                                         .addObject(new JsonObject().putString("address", "mindMaps.list"))
                                         .addObject(new JsonObject().putString("address", "mindMaps.save"))
                                         .addObject(new JsonObject().putString("address", "mindMaps.delete"))
+                                        .addObject(new JsonObject().putString("address_re", "mindMaps\\.editor\\..+"))
+                        )
+                        .putArray("outbound_permitted", new JsonArray()
+                                        .addObject(new JsonObject().putString("address_re", "mindMaps\\.events\\..+"))
                         )
         );
         container.deployModule(
@@ -28,6 +32,9 @@ public class App extends Verticle {
         );
         container.deployVerticle(
                 MindMapVerticle.class.getCanonicalName()
+        );
+        container.deployVerticle(
+                MindMapEditorVerticle.class.getCanonicalName()
         );
     }
 
