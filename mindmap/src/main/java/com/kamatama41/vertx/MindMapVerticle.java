@@ -21,10 +21,10 @@ public class MindMapVerticle extends Verticle {
 
         // Find specific MindMap
         vertx.eventBus().registerHandler("mindMaps.find", (Message<JsonObject> event) -> {
-            sendPersisterEvent("find"
+            sendPersisterEvent("findone"
                     , new JsonObject().putObject("matcher", new JsonObject().putString("_id", event.body().getString("_id")))
                     , response -> {
-                        event.reply(new JsonObject().putArray("mindMaps", response.getArray("results")));
+                        event.reply(new JsonObject().putObject("mindMap", response.getObject("result")));
                     }
             );
         });

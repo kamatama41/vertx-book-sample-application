@@ -54,8 +54,8 @@ public class MindMapEditorVerticle extends Verticle {
             final String newName = reqBody.getString("newName");
             vertx.eventBus().send("mindMaps.find"
                     , new JsonObject().putString("_id", mindMapId)
-                    , (Message<JsonObject> response) -> {
-                        final JsonObject mindMapJson = response.body().getObject("mindMap");
+                    , (Message<JsonObject> result) -> {
+                        final JsonObject mindMapJson = result.body().getObject("mindMap");
                         if(mindMapJson == null) {
                             return;
                         }
@@ -67,14 +67,12 @@ public class MindMapEditorVerticle extends Verticle {
                         }
                         node.setName(newName);
                         vertx.eventBus().send("mindMaps.save", mindMap.toJson(), (Message<JsonObject> ignore) -> {
-                            publishMindMapEvent(mindMap
-                                    , new JsonObject()
-                                    .putString("event", "nodeRenames")
-                                    .putString("key", key)
-                                    .putString("newName", newName)
-
-
-                            );
+                            JsonObject response = new JsonObject()
+                                    .putString("event", "nodeRenamed")
+                                    .putString("newName", newName);
+                            // "key == null" is root node.
+                            if(key != null) { response.putString("key", key); }
+                            publishMindMapEvent(mindMap, response);
                         });
                     }
             );
@@ -113,7 +111,7 @@ public class MindMapEditorVerticle extends Verticle {
     }
 
     private MindMap.Node findNodeByKey(MindMap.Node root, String key) {
-        if(key.equals(root.getKey())) {
+        if(root.getKey() == null && key == null) {
             return root;
         } else if(root.getChildren() != null) {
             for (MindMap.Node child : root.getChildren()) {
